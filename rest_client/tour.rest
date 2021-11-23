@@ -1,0 +1,89 @@
+GET http://localhost:3000/api/v1/tours
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjYxN2M3YjhjYTcwMTNhMDFjNjE2MzkxYyIsImlhdCI6MTYzNjU4MTg1OSwiZXhwIjoxNjQ0MzU3ODU5fQ.x2q_HavY8Q8wNrnLBVwxNHtcqDqZjobz8XdfM0_oVLQ
+
+### 
+GET http://localhost:3000/api/v1/tours/vvvvvvvvvvvvv
+
+### QUERY STRING
+GET http://localhost:3000/api/v1/tours?duration[gte]=5&difficulty=easy&sort=2
+
+### QUERY STRING :sorting acending
+GET http://localhost:3000/api/v1/tours?sort=price
+### QUERY STRING :sorting decending
+GET http://localhost:3000/api/v1/tours?sort=-price
+
+### QUERY STRING :sorting by different fields
+GET http://localhost:3000/api/v1/tours?sort=-price,ratingsAverage
+
+### QUERY STRING :limiting fields
+GET http://localhost:3000/api/v1/tours?fields=name
+
+### QUERY STRING :exclude fields
+GET http://localhost:3000/api/v1/tours?fields=-name
+
+### QUERY STRING :pagination :get page 2 with  results
+GET http://localhost:3000/api/v1/tours?page=1&limit=3
+
+### QUERY STRING :aliasing
+GET http://localhost:3000/api/v1/tours/top-5-cheap
+
+
+###AGREGATIONS : stages and operators pipeline
+
+GET http://localhost:3000/api/v1/tours/tour-stats
+
+###
+
+GET http://localhost:3000/api/v1/tours/monthly-plan/2021
+
+
+
+
+
+
+
+
+
+###
+PATCH  http://localhost:3000/api/v1/tours/616cd40b33a1771238100e78
+Content-Type: application/json
+
+{
+    "ratingsAverage":4.9
+}
+
+###
+DELETE http://localhost:3000/api/v1/tours/616b4fe4134d0411d8d288f5
+
+###
+POST http://localhost:3000/api/v1/tours
+Content-Type: application/json
+
+{
+    "name": "The Snow Adventurer",
+        "duration": 4,
+        "maxGroupSize": 10,
+        "difficulty": "difficult",
+        "ratingsAverage": 4.5,
+        "ratingsQuantity": 13,
+        "price": 997,
+        "summary": "Exciting adventure in the snow with snowboarding and skiing",
+        "description": "Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua, ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum!\nDolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur, exercitation ullamco laboris nisi ut aliquip. Lorem ipsum dolor sit amet, consectetur adipisicing elit!",
+        "imageCover": "tour-3-cover.jpg",
+        "images": [
+            "tour-3-1.jpg",
+            "tour-3-2.jpg",
+            "tour-3-3.jpg"
+        ],
+        "startDates": [
+            "2022-01-05,10:00",
+            "2022-02-12,10:00",
+            "2023-01-06,10:00"
+        ]
+}
+
+
+
+
+
+  
