@@ -6,18 +6,18 @@ const bcrypt = require('bcryptjs');
 const userSchema = new mongoose.Schema({
   name: {
     type: String,
-    require: [true, 'a user should have a name'],
+    required: [true, 'a user should have a name'],
   },
   email: {
     type: String,
-    require: [true, 'a user should have an email'],
+    required: [true, 'a user should have an email'],
     unique: true,
     validate: [validator.isEmail, 'please provide a valid email'],
   },
   photo: String,
   password: {
     type: String,
-    require: [true, 'a user should have a name'],
+    required: [true, 'a user should have a name'],
     minLength: 8,
     select: false,
   },
@@ -28,7 +28,7 @@ const userSchema = new mongoose.Schema({
   },
   passwordConfirm: {
     type: String,
-    require: [true, 'please confirm your password'],
+    required: [true, 'please confirm your password'],
     validate: {
       //THIS WORK ONLY ON CREATE AND SAVE NOT UPDATE !!
       validator: function (el) {

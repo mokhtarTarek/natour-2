@@ -1,3 +1,4 @@
+const path = require('path');
 const fs = require('fs');
 const express = require('express');
 const morgan = require('morgan');
@@ -10,16 +11,24 @@ const hpp = require('hpp');
 const tourRouter = require('./routes/tourRoutes');
 const userRouter = require('./routes/userRoutes');
 const reviewRouter = require('./routes/reviewRoutes');
+const viewRouter = require('./routes/viewRoutes');
+
 const AppError = require('./utils/errorApp');
 const globalErrorController = require('./controllers/errorController');
 
 const app = express();
-
+//define the view engine
+app.set('view engine', 'pug'); //express support pug and others engines out of the box
+app.set('views', path.join(__dirname, 'views'));
 //------ALL MIDDLEWARES ARE INVOKED FOLLOWING THE MIDDLEWARE STACK ORDER------------
 
 app.use(helmet()); //ADD SOME INFOS TO THE RES HEADERS
 
 // GLOBAL MIDDLEWARES
+
+// SERVING STATIS FILES
+/*app.use(express.static(`${__dirname}/public`));*/
+app.use(express.static(path.join(__dirname, 'public')));
 
 if (process.env.NODE_ENV === 'developement') {
 	app.use(morgan('dev')); //THIRD PARTY MW
@@ -57,9 +66,6 @@ app.use(
 	})
 );
 
-// SERVING STATIS FILES
-app.use(express.static(`${__dirname}/public`));
-
 // COSTUM MD :READ REQUESTS
 app.use((req, res, next) => {
 	req.reqTime = new Date().toISOString();
@@ -68,6 +74,8 @@ app.use((req, res, next) => {
 });
 
 // MOUNTING ROUTERS
+
+app.use('/', viewRouter);
 app.use('/api/v1/tours', tourRouter);
 app.use('/api/v1/users', userRouter);
 app.use('/api/v1/reviews', reviewRouter);
@@ -78,7 +86,9 @@ app.all('*', (req, res, next) => {
 	next(new AppError(`can not find ${req.originalUrl} in this server`, 404));
 });
 
-//HANDLE ALL REST ERRORS IN A GLOBAL MIDDLEWARE HANDLER
+//HANDLE ALL OTHERS ERRORS IN A GLOBAL MIDDLEWARE HANDLER
 app.use(globalErrorController);
 
 module.exports = app;
+//#####################################
+//CALLING NEXT WITH ARGUMENT THEN THE ARGUMENT WILL BE CONSIDERED AS ERROR BY EXPRESS

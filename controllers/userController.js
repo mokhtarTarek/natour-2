@@ -1,6 +1,7 @@
 const User = require('./../models/userModel');
 const catchAsync = require('../utils/catchAsync');
 const errorApp = require('./../utils/errorApp');
+const handlerFactory = require('./handlerFactory');
 
 const filterObj = (body, ...allawedField) => {
   //rest params ['name','email']
@@ -17,15 +18,11 @@ const filterObj = (body, ...allawedField) => {
   return newObj;
 };
 
-exports.getAllUsers = catchAsync(async (req, res, next) => {
-  const users = await User.find();
-  res.status(200).json({
-    status: 'success',
-    data: {
-      users,
-    },
-  });
-});
+// a MD to get the current loged in user without specifying the id as a params
+exports.getMe = (req, res, next) => {
+  req.params.id = req.user._id;
+  next();
+};
 
 exports.updateMe = catchAsync(async (req, res, next) => {
   // check if user is not updating the password
@@ -49,7 +46,6 @@ exports.updateMe = catchAsync(async (req, res, next) => {
     },
   });
 });
-
 exports.deleteMe = catchAsync(async (req, res, next) => {
   const user = await User.findByIdAndUpdate(req.user._id, { active: false });
 
@@ -57,35 +53,16 @@ exports.deleteMe = catchAsync(async (req, res, next) => {
     status: 'success',
   });
 });
-
-exports.getUser = (req, res) => {
-  res.status(500).json({
-    status: 'error',
-    message: 'this route is not fefined',
-  });
-};
-
 exports.createUser = (req, res) => {
   res.status(500).json({
     status: 'error',
-    message: 'this route is not fefined',
+    message: 'this route is not defined / please use signup unstead',
   });
 };
-exports.updateUser = (req, res) => {
-  res.status(500).json({
-    status: 'error',
-    message: 'this route is not fefined',
-  });
-};
-exports.deleteUser = async (req, res) => {
-  const user = await User.findByIdAndDelete(req.params.id);
-  if (!user) {
-    return next(new ErrorApp(`no user found with that ID`, 404));
-  }
-  res.status(204).json({
-    status: 'sucsess',
-    data: {
-      user: null,
-    },
-  });
-};
+
+exports.getAllUsers = handlerFactory.getAll(User);
+exports.getUser = handlerFactory.getOne(User);
+
+// DO NOT UPDATE USER PASSWORD WITH THIS : findByIdAndUpdate will not invoke models middlewares
+exports.updateUser = handlerFactory.updateOne(User);
+exports.deleteUser = handlerFactory.deleteOne(User);

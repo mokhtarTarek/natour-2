@@ -1,3 +1,4 @@
+const slugify = require('slugify');
 const mongoose = require('mongoose');
 const User = require('./userModel');
 
@@ -11,6 +12,7 @@ const tourSchema = new mongoose.Schema(
       maxLength: [40, 'a tour name must be less or equal then 40 char'],
       minLength: [5, 'a tour name must be greater then 40 char'],
     },
+    slug: String,
     duration: {
       type: Number,
       required: [true, 'tour must have a duration'],
@@ -28,6 +30,7 @@ const tourSchema = new mongoose.Schema(
       default: 4.5,
       min: [1, 'rating must be above 1.0'],
       max: [5, 'rating must be below 5.0'],
+      set: (val) => Math.round(val * 10) / 10, //4.666 ,46.666 ,47 ,4.7
     },
     ratingsQuantity: {
       type: Number,
@@ -105,7 +108,12 @@ const tourSchema = new mongoose.Schema(
     toObject: { virtuals: true },
   }
 );
-//reugular function is required when dealing with "this"
+//INDEXING
+tourSchema.index({ price: 1, ratingsAverage: -1 }); //-1 decending
+tourSchema.index({ slug: 1 });
+tourSchema.index({ startLocation: '2dsphere' });
+
+//a regular function is required when dealing with "this"
 tourSchema.virtual('weeksDuration').get(function () {
   return this.duration / 7; //this point to the current doc
 });
@@ -122,6 +130,12 @@ tourSchema.pre(/^find/, function (next) {
     path: 'guides',
     select: '-__v -passwordchangedAt',
   });
+  next();
+});
+
+//DOCUMENT MIDDLEWARE : run before create() and save()
+tourSchema.pre('save', function (next) {
+  this.slug = slugify(this.name, { lower: true });
   next();
 });
 
