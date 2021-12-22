@@ -4,7 +4,7 @@ const jwt = require('jsonwebtoken');
 const catchAsync = require('../utils/catchAsync');
 const User = require('../models/userModel');
 const errorApp = require('../utils/errorApp');
-const sendEmail = require('../utils/email');
+const Email = require('../utils/email');
 
 //--------------------------------------------------------HELPER FUNCTIONS
 const signToken = (id) => {
@@ -22,8 +22,8 @@ const createAndSendToken = (user, statusCode, res) => {
     ),
     httpOnly: true,
   };
-
-  if (process.env.NODE_ENV === 'production') cookieOptions.secure = true; //sended only with https
+  //sended only with https
+  if (process.env.NODE_ENV === 'production') cookieOptions.secure = true;
 
   //remove the password from the output
   user.password = undefined;
@@ -48,12 +48,15 @@ exports.signup = catchAsync(async (req, res, next) => {
     role: req.body.role,
   });
 
+  //SEND WELCOME IN USER REGISTRATION
+  const url = `${req.protocol}://${req.get('host')}/me`;
+  await new Email(newUser, url).sendWelcome();
   createAndSendToken(newUser, 200, res);
 });
 
 exports.login = catchAsync(async (req, res, next) => {
   const { email, password } = req.body;
-
+  //console.log(email, password);
   if (!email || !password) {
     return next(new errorApp('please provid user and password', 400));
   }
@@ -61,7 +64,7 @@ exports.login = catchAsync(async (req, res, next) => {
   //password field is not selected by default in the model : we need to use select method
   const user = await User.findOne({ email }).select('+password');
 
-  //IF USER IS FALSY OR BCRYPT.COMPARE RTURN FALSE
+  //IF USER IS FALSY OR BCRYPT.COMPARE RETURN FALSE
   if (!user || !(await user.correctPassword(password, user.password))) {
     return next(new errorApp('incorrect email or password', 401)); //unauthorized
   }
@@ -69,7 +72,15 @@ exports.login = catchAsync(async (req, res, next) => {
   createAndSendToken(user, 200, res);
 });
 
-//----------------------------------------------------------PROTECT ROUTE :ONLY FOR LOGIN IN
+exports.logOut = (req, res) => {
+  res.cookie('jwt', 'logout', {
+    expires: new Date(Date.now() + 5 * 1000),
+    httpOnly: true,
+  });
+  res.status(200).json({ status: 'success' });
+};
+
+//##################### PROTECT ROUTE :ONLY FOR LOGIN IN #############################
 
 exports.protect = catchAsync(async (req, res, next) => {
   //check if token exist
@@ -79,6 +90,8 @@ exports.protect = catchAsync(async (req, res, next) => {
     req.headers.authorization.startsWith('Bearer')
   ) {
     token = req.headers.authorization.split(' ')[1];
+  } else if (req.cookies.jwt) {
+    token = req.cookies.jwt;
   }
 
   if (!token) {
@@ -91,25 +104,55 @@ exports.protect = catchAsync(async (req, res, next) => {
 
   const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
 
-  console.log(decoded);
-  const freshUser = await User.findById(decoded.id);
+  //console.log(decoded);
+  const currentUser = await User.findById(decoded.id);
 
-  console.log(freshUser);
-  if (!freshUser) {
+  //console.log(currentUser);
+  if (!currentUser) {
     return next(new errorApp('the user no longer exist', 401));
   }
 
   //check if user change password after token essu :so user must login again
-  if (freshUser.changedPasswordAfter(decoded.iat)) {
+  if (currentUser.changedPasswordAfter(decoded.iat)) {
     return next(
       new errorApp('Password has been changed please login again', 401)
     );
   }
-
-  req.user = freshUser;
-
+  req.user = currentUser;
+  res.locals.user = currentUser; //locals will be accessible by every pug templates
   next();
 });
+
+//########################## CHECK IF LOGGED IN FOR EVERY REQUEST ##################
+exports.isLoggedIn = async (req, res, next) => {
+  if (req.cookies.jwt) {
+    try {
+      //1) VERIFY COOKIES
+      const decoded = await promisify(jwt.verify)(
+        req.cookies.jwt,
+        process.env.JWT_SECRET
+      );
+
+      //2) CHECK IF USER STILL EXIST
+      const currentUser = await User.findById(decoded.id);
+      if (!currentUser) {
+        return next();
+      }
+
+      //3) CHECK IF USER CHANGE PASSWORD AFTER TOKEN ESSUED :SO USER MUST LOGIN AGAIN
+      if (currentUser.changedPasswordAfter(decoded.iat)) {
+        return next();
+      }
+      //A USER EXIST
+      res.locals.user = currentUser; //locals will be accessible by every pug templates
+      return next();
+    } catch {
+      return next();
+    }
+  }
+  next(); //in case if no cookies
+};
+//#############################################################################
 
 exports.restrictTo = (...roles) => {
   //roles ('admin','lead-guide'),
@@ -132,23 +175,24 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
 
   //2) create reset token
   const resetToken = user.createPasswordResetToken();
-
-  await user.save({ validateBeforeSave: true });
+  // avoid validator
+  await user.save({ validateBeforeSave: false });
 
   //3) send reset token
-  const resetURL = `${req.protocol}://${req.get(
-    'host'
-  )}/api/v1/users/resetPassword/${resetToken}`;
 
-  const message = `forgot your password ? submit a patch with your new password
-  and password confirm to this ${resetURL}`;
+  /*const message = `forgot your password ? submit a patch with your new password
+  and password confirm to this ${resetURL}`;*/
 
   try {
-    await sendEmail({
+    const resetURL = `${req.protocol}://${req.get(
+      'host'
+    )}/api/v1/users/resetPassword/${resetToken}`;
+    /*await sendEmail({
       email: user.email,
       message,
-      subject: 'your email reset token',
-    });
+      subject: 'your email reset token',*/
+    /*});*/
+    await new Email(user, resetURL).sendPasswordReset();
 
     res.status(200).json({
       status: 'seccess',

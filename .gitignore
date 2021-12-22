@@ -2,3 +2,4 @@
 config.env
 token
 reading.rd
+/.cache

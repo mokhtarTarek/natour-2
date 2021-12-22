@@ -14,7 +14,10 @@ const userSchema = new mongoose.Schema({
     unique: true,
     validate: [validator.isEmail, 'please provide a valid email'],
   },
-  photo: String,
+  photo: {
+    type: String,
+    default: 'default.jpg',
+  },
   password: {
     type: String,
     required: [true, 'a user should have a name'],
@@ -54,7 +57,7 @@ userSchema.pre('save', async function (next) {
   //if the password is not changed then return
   if (!this.isModified('password')) return next();
   //hash the password
-  this.password = await bcrypt.hash(this.password, 8);
+  this.password = await bcrypt.hash(this.password, 12);
   //delete the confirm password
   this.passwordConfirm = undefined;
 });

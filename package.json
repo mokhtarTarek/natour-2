@@ -6,30 +6,42 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "NODE_ENV=developement nodemon server.js",
-    "start:prod": "NODE_ENV=production nodemon server.js"
+    "start:prod": "NODE_ENV=production nodemon server.js",
+    "debug": "ndb server.js",
+    "watch:js": "parcel watch ./public/js/index.js --out-dir ./public/js --out-file bundle.js",
+    "build:js": "parcel watch ./public/js/index.js --out-dir ./public/js --out-file bundle.js"
   },
   "author": "Tarek mokhtar",
   "license": "ISC",
   "dependencies": {
+    "@babel/polyfill": "^7.12.1",
+    "alerts": "^0.1.3",
+    "axios": "^0.24.0",
     "bcryptjs": "^2.4.3",
+    "cookie-parser": "^1.4.6",
     "dotenv": "^10.0.0",
     "express": "^4.17.1",
     "express-mongo-sanitize": "^2.1.0",
     "express-rate-limit": "^5.5.1",
     "helmet": "^4.6.0",
     "hpp": "^0.2.3",
+    "html-to-text": "^8.1.0",
+    "jimp": "^0.16.1",
     "jsonwebtoken": "^8.5.1",
     "mongoose": "^5.13.11",
     "morgan": "^1.10.0",
+    "multer": "^1.4.4",
     "nodemailer": "^6.7.0",
     "pug": "^3.0.2",
     "slugify": "^1.6.3",
+    "stripe": "^8.194.0",
     "validator": "^13.6.0",
     "xss-clean": "^0.1.1"
   },
   "devDependencies": {
     "eslint": "^8.2.0",
-    "nodemon": "^2.0.13"
+    "nodemon": "^2.0.13",
+    "parcel-bundler": "^1.12.5"
   },
   "jshintConfig": {
     "esversion": 6

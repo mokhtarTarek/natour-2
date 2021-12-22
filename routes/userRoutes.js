@@ -7,14 +7,20 @@ const authController = require('./../controllers/authController');
 
 router.post('/signup', authController.signup);
 router.post('/login', authController.login);
+router.get('/logout', authController.logOut);
 router.post('/forgotPassword', authController.forgotPassword);
 router.patch('/resetPassword/:token', authController.resetPassword);
 
 //########## PROTECTED ROUTES ##############################################
 
 router.use(authController.protect); //protect all routes after this middleware
-
-router.patch('/updateMe', userController.updateMe);
+//upload single : for one file and photo for the field that will hold the file
+router.patch(
+	'/updateMe',
+	userController.uploadUserPhoto,
+	userController.reseizeUserPhoto,
+	userController.updateMe
+);
 router.delete('/deleteMe', userController.deleteMe);
 router.patch('/updateMyPassword', authController.updatePassword);
 router.get('/me', userController.getMe, userController.getUser);

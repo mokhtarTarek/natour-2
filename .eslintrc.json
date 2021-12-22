@@ -7,6 +7,7 @@
     }
   },
   "rules": {
-    "semi": [2, "always", { "omitLastInOneLineBlock": true }]
+    "semi": [2, "always", { "omitLastInOneLineBlock": true }],
+    "no-console": "warn"
   }
 }
