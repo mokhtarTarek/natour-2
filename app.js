@@ -29,7 +29,7 @@ app.use(helmet()); //ADD SOME INFOS TO THE RES HEADERS
 
 // GLOBAL MIDDLEWARES
 
-// SERVING STATIS FILES
+// SERVING STATIC FILES
 /*app.use(express.static(`${__dirname}/public`));*/
 app.use(express.static(path.join(__dirname, 'public')));
 
@@ -72,7 +72,7 @@ app.use(
 );
 
 // COMPRESS ALL TEXT SENDED TO THE CLIENT
-aap.use(compression());
+app.use(compression());
 
 // COSTUM MD :READ REQUESTS
 app.use((req, res, next) => {
